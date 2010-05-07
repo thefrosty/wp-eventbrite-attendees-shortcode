@@ -38,12 +38,12 @@ There are no screenshots at this time.
 
 == Changelog ==
 
-**Version 0.1**
+= Version 0.1 =
 
 * Admin upgrade.
 * RSS feed changed to *list* items in **one** listed element.
 
-**Version 0.1&alpha;**
+= Version 0.1&alpha; =
 
 * Initial release.
 
