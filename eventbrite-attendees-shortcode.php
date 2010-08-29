@@ -10,7 +10,7 @@
  * Developers can learn more about the WordPress shortcode API:
  * @link http://codex.wordpress.org/Shortcode_API
  *
- * @copyright 2009
+ * @copyright 2009 - 2010
  * @author Austin Passy
  * @link http://austinpassy.com/2009/08/20/eventbrite-attendee-shortcode-plugin
  * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
@@ -143,7 +143,7 @@ function eventbrite_attendees( $atts ) {
 			
 			$rss_html .= '<ul>';
 			
-				$rss_html .= '<li>No items to display, please check you <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> list.</li>';
+				$rss_html .= '<li>No items to display, please check your <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> idlist.</li>';
 			
 			$rss_html .= '</ul>';
 		
@@ -195,7 +195,7 @@ function eventbrite_attendees_preview( $atts ) {
 			
 			$rss_html .= '<ul>';
 			
-				$rss_html .= '<li>No items to display, please check you <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> list.</li>';
+				$rss_html .= '<li>No items to display, please check your <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> list.</li>';
 			
 			$rss_html .= '</ul>';
 		

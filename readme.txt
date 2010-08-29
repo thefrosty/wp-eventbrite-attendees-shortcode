@@ -1,5 +1,5 @@
 ===Eventbrite Attendees Shortcode ===
-Contributors: austyfrosty
+Contributors: austyfrosty, themelit
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7329157
 Tags: eventbrite, event, attendee, shortcode, shortcodes, rss, feed
 Requires at least: 2.5
@@ -37,6 +37,11 @@ I created this plugin to easily show your attendees from any event you've create
 There are no screenshots at this time.
 
 == Changelog ==
+
+= Version 0.2&alpha =
+
+* `array_slice` fix.
+* Spelling fixes
 
 = Version 0.1 =
 
