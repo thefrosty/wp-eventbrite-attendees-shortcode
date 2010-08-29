@@ -15,7 +15,6 @@ Example use:
 
 * Find out more about the [Eventbrite Attendees Shortcode](http://austinpassy.com/wordpress-plugins/eventbrite-attendees-shortcode/) plugin
 
-
 == Installation ==
 
 Follow the steps below to install the plugin.
@@ -23,8 +22,6 @@ Follow the steps below to install the plugin.
 1. Upload the `eventbrite-attendees-shortcode` directory to the /wp-content/plugins/ directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 3. Go to Settings/eventbrite-attendees-shortcode to view a working preview.
-
-== Help ==
 
 == Frequently Asked Questions ==
 
