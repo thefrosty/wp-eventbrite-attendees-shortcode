@@ -35,7 +35,11 @@ There are no screenshots at this time.
 
 == Changelog ==
 
-= Version 0.2&alpha =
+= Version 0.2.1&alpha; = 
+
+* Removed javscript link causing hang-ups.
+
+= Version 0.2&alpha; =
 
 * `array_slice` fix.
 * Spelling fixes

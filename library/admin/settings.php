@@ -147,7 +147,7 @@
 	else : ?>
 <div class="postbox ad">
 	<h3>
-		<script type='text/javascript' src='http://wpads.net/ads/js.php?type=link&align=center&zone=2'></script>
+		Nothing to see people.
     </h3>
 </div>
 <?php endif; ?>

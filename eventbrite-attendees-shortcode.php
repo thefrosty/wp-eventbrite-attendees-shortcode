@@ -3,7 +3,7 @@
  * Plugin Name: Eventbrite Attendees Shortcode
  * Plugin URI: http://austinpassy.com/wordpress-plugins/eventbrite-attendees-shortcode/
  * Description: Adds your attendee list from your eventbrite RSS feed.
- * Version: 0.2&alpha;
+ * Version: 0.2.1&alpha;
  * Author: Austin &ldquo;Frosty&rdquo; Passy
  * Author URI: http://austinpassy.com
  *
