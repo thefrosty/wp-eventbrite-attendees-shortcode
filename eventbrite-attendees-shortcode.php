@@ -3,14 +3,14 @@
  * Plugin Name: Eventbrite Attendees Shortcode
  * Plugin URI: http://austinpassy.com/wordpress-plugins/eventbrite-attendees-shortcode/
  * Description: Adds your attendee list from your eventbrite RSS feed.
- * Version: 0.2.1&alpha;
+ * Version: 0.3
  * Author: Austin &ldquo;Frosty&rdquo; Passy
  * Author URI: http://austinpassy.com
  *
  * Developers can learn more about the WordPress shortcode API:
  * @link http://codex.wordpress.org/Shortcode_API
  *
- * @copyright 2009 - 2010
+ * @copyright 2009 - 2011
  * @author Austin Passy
  * @link http://austinpassy.com/2009/08/20/eventbrite-attendee-shortcode-plugin
  * @license http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
@@ -22,263 +22,189 @@
  * @package EventbriteAttendeesShortcode
  */
 
-/**
- * Make sure we get the correct directory.
- * @since 0.1
- */
-	if ( !defined( 'WP_CONTENT_URL' ) )
-		define( 'WP_CONTENT_URL', get_option( 'siteurl' ) . '/wp-content' );
-	if ( !defined( 'WP_CONTENT_DIR' ) )
-		define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
-	if ( !defined( 'WP_PLUGIN_URL' ) )
-		define('WP_PLUGIN_URL', WP_CONTENT_URL. '/plugins' );
-	if ( !defined( 'WP_PLUGIN_DIR' ) )
-		define( 'WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins' );
+add_action( 'plugins_loaded', 'eventbrite_attendees_shortcode' );
 
-/**
- * Define constant paths to the plugin folder.
- * @since 0.1
- */
-	define( EVENTBRITE_ATTENDEE, WP_PLUGIN_DIR . '/eventbrite-attendees-shortcode' );
-	define( EVENTBRITE_ATTENDEE_URL, WP_PLUGIN_URL . '/eventbrite-attendees-shortcode' );
-	
-	define( EVENTBRITE_ATTENDEE_ADMIN, WP_PLUGIN_DIR . '/eventbrite-attendees-shortcode/library/admin' );
-	define( EVENTBRITE_ATTENDEE_CSS, WP_PLUGIN_URL . '/eventbrite-attendees-shortcode/library/css' );
-	define( EVENTBRITE_ATTENDEE_JS, WP_PLUGIN_URL . '/eventbrite-attendees-shortcode/library/js' );
-
-/**
- * Add the settings page to the admin menu.
- * @since 0.1
- */
-	add_action( 'admin_init', 'eventbrite_attendees_admin_init' );
-	add_action( 'admin_menu', 'eventbrite_attendees_add_pages' );
-
-/**
- * Filters.
- * @since 0.2
- */	
-	add_filter( 'plugin_action_links', 'eventbrite_attendees_plugin_actions', 10, 2 ); //Add a settings page to the plugin menu
-	
-/**
- * Load the RSS Shortcode settings if in the WP admin.
- * @since 0.1
- */
-	if ( is_admin() )
-		require_once( EVENTBRITE_ATTENDEE_ADMIN . '/settings-admin.php' );
-
-/**
- * If not in the WP admin, load the settings from the database.
- * @since 0.1
- */
-	if ( !is_admin() )
-		$eventbrite_attendees = get_option( 'eventbrite_attendees_settings' );
-	
-/**
- * Add Shortcode
- * @since 0.1
- */
-	add_shortcode( 'eventbrite-attendees', 'eventbrite_attendees' );
-
- /**
- * Load the stylesheets
- * @since 0.2
- */   
-function eventbrite_attendees_admin_init() {
-	wp_register_style( 'eventbrite-attendees-tabs', EVENTBRITE_ATTENDEE_CSS . '/tabs.css' );
+function eventbrite_attendees_shortcode() {
+	$plugin = new EventbriteAttendeesShortcode();
 }
 
-/**
- * Function to add the settings page
- * @since 0.1
- */
-function eventbrite_attendees_add_pages() {
-	if ( function_exists( 'add_options_page' ) ) 
-		$page = add_options_page( 'Eventbrite Attendees Shortcode Settings', 'Eventbrite Attendees', 10, 'eventbrite-attendees.php', eventbrite_attendees_theme_page );
-			add_action( 'admin_print_styles-' . $page, 'eventbrite_attendees_admin_style' );
-			add_action( 'admin_print_scripts-' . $page, 'eventbrite_attendees_admin_script' );
-}
-
-/**
- * Function to add the style to the settings page
- * @since 0.2
- */
-function eventbrite_attendees_admin_style() {
-	wp_enqueue_style( 'thickbox' );
-	wp_enqueue_style( 'eventbrite-attendees-tabs' );
-}
-
-/**
- * Function to add the script to the settings page
- * @since 0.2
- */
-function eventbrite_attendees_admin_script() {
-	wp_enqueue_script( 'eventbrite-attendees', EVENTBRITE_ATTENDEE_JS . '/eventbrite-attendees.js', array( 'jquery' ), '0.1', false );
-}
+if( !class_exists( 'EventbriteAttendeesShortcode' ) ) {
+class EventbriteAttendeesShortcode {
 	
-/**
- * RSS shortcode function
- *
- * @since 0.1
- * @use [eventbrite-attendees feed="http://www.eventbrite.com/rss/event_list_attendees/384870157"]
- */
-function eventbrite_attendees( $atts ) {
+	const version = '0.3';
+	const domain  = 'eventbrite-attendees';
 	
-	global $wpdb;
-		
-		extract( shortcode_atts( array( 
-			
-			'feed' => '',
-		
-		), $atts ) );
-		
-		include_once( ABSPATH . WPINC . '/rss.php' );
-		
-		$rss = fetch_rss( $atts[ 'feed' ] );
-		
-		$items = array_slice( $rss->items, 0 );
-		
-		$rss_html = '<div id="eventbrite-attendees-list" style="clear:both;">';
-		
-		if ( empty( $items ) ) :
-			
-			$rss_html .= '<ul>';
-			
-				$rss_html .= '<li>No items to display, please check your <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> idlist.</li>';
-			
-			$rss_html .= '</ul>';
-		
-		else :
-			
-			$rss_html .= '<ul>';
-				
-			foreach ( $items as $item ) :
-				
-				$rss_html .= '<li>';
+	function EventbriteAttendeesShortcode() {
+		$this->__construct();
+	}
 	
-					$rss_html .= $item[ 'content' ][ 'encoded' ];
-					
-				$rss_html .= '<hr />';
-				
-				$rss_html .= '</li>';
-			
-			endforeach;
-		   
-			$rss_html .= '</ul>';
+	function __construct() {
+		register_activation_hook( __FILE__, array( __CLASS__, 'activate' ) );
 		
-		endif;
+		add_action( 'init', array( __CLASS__, 'activate' ) );
+		add_action( 'init', array( __CLASS__, 'locale' ) );
 		
-		$rss_html .= '</div>';
+		add_action( 'admin_init', array( __CLASS__, 'scripts' ) );
+		add_action( 'admin_init', array( __CLASS__, 'styles' ) );
 		
-	return $rss_html;
-
-}
-
-/**
- * RSS shortcode function
- *
- * @since 0.1
- * @use [eventbrite-attendees feed="http://www.eventbrite.com/rss/event_list_attendees/384870157"]
- */
-function eventbrite_attendees_preview( $atts ) {
+		add_filter( 'plugin_action_links', array( __CLASS__, 'plugin_action' ), 10, 2 ); //Add a settings page to the plugin menu
+		
+		add_shortcode( 'eventbrite-attendees', array( __CLASS__, 'shortcode' ) );
+	}
 	
-	global $wpdb;
+	function activate() {
+		define( 'EVENTBRITE_ATTENDEE_DIR', plugin_dir_path( __FILE__ ) );
+		define( 'EVENTBRITE_ATTENDEE_ADMIN', plugin_dir_path( __FILE__ ) . '/library/admin/' );
 		
-		include_once( ABSPATH . WPINC . '/rss.php' );
+		define( 'EVENTBRITE_ATTENDEE_CSS', plugins_url( 'library/css', __FILE__ ) );
+		define( 'EVENTBRITE_ATTENDEE_JS', plugins_url( 'library/js', __FILE__ ) );
 		
-		$rss = fetch_rss( $atts );
-		
-		$items = array_slice( $rss->items, 0 );
-		
-		$rss_html = '<div id="eventbrite-attendees-list" style="clear:both;">';
-		
-		if ( empty( $items ) ) :
-			
-			$rss_html .= '<ul>';
-			
-				$rss_html .= '<li>No items to display, please check your <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> list.</li>';
-			
-			$rss_html .= '</ul>';
-		
-		else :
-			
-			$rss_html .= '<ul>';
-				
-			foreach ( $items as $item ) :
-				
-				$rss_html .= '<li>';
+		if ( is_admin() ) {
+			require_once( EVENTBRITE_ATTENDEE_ADMIN . 'admin.php' );
+			require_once( EVENTBRITE_ATTENDEE_ADMIN . 'dashboard.php' );
+		}
+	}
 	
-					$rss_html .= $item[ 'content' ][ 'encoded' ];
-					
-				$rss_html .= '<hr />';
-				
-				$rss_html .= '</li>';
-			
-			endforeach;
-		   
-			$rss_html .= '</ul>';
-		
-		endif;
-		
-		$rss_html .= '</div>';
-		
-	return $rss_html;
+	function locale() {
+		load_plugin_textdomain( EventbriteAttendeesShortcode::domain, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	}
+	
+	function scripts() {
+		wp_register_script( EventbriteAttendeesShortcode::domain, plugins_url( 'library/js/eventbrite-attendees.js', __FILE__ ), array( 'jquery' ), EventbriteAttendeesShortcode::version, true );
+	}
+	
+	function styles() {
+		wp_register_style( EventbriteAttendeesShortcode::domain . '-admin', plugins_url( 'library/css/admin.css', __FILE__ ), false, EventbriteAttendeesShortcode::version, 'screen' );
+		wp_register_style( EventbriteAttendeesShortcode::domain . '-tabs', plugins_url( 'library/css/tabs.css', __FILE__ ), false, EventbriteAttendeesShortcode::version, 'screen' );
+	}
 
-}
-
-/**
- * TheFrosty Network Feed
- * @since 0.2
- * @package Admin
- */
-if ( !function_exists( 'thefrosty_network_feed' ) ) :
-	function thefrosty_network_feed( $attr, $count ) {
-		
+	/**
+	 * RSS shortcode function
+	 *
+	 * @since 0.1
+	 * @use [eventbrite-attendees feed="http://www.eventbrite.com/rss/event_list_attendees/384870157"]
+	 */
+	function shortcode( $attr ) {
 		global $wpdb;
+			
+		extract( shortcode_atts( array( 
+			'feed' => '',
+		), $attr ) );
 		
-		include_once( ABSPATH . WPINC . '/rss.php' );
+		include_once( ABSPATH . WPINC . '/class-simplepie.php' );
+		$feed = new SimplePie();
+		$feed->set_feed_url( $attr['feed'] );
+		$feed->enable_cache( false );
+		$feed->init();
+		$feed->handle_content_type();
 		
-		$rss = fetch_rss( $attr );
-		
-		$items = array_slice( $rss->items, 0, 3 );
-		
-		echo '<div class="tab-content t' . $count . ' postbox open feed">';
-		
-		echo '<ul>';
-		
-		if ( empty( $items ) ) echo '<li>No items</li>';
-		
+		// Lets not set a cache location for localhosts.
+		$domain = preg_replace( '|https?://([^/]+)|', '$1', get_option( 'siteurl' ) );
+		if ( false !== strpos( $domain, '/' ) || 'localhost' == $domain || preg_match( '|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|', $domain ) );
 		else
+			$feed->set_cache_location( plugin_dir_path( __FILE__ ) . 'cache' );
+	
+		$items = $feed->get_item();
+			
+		$out = '<div id="eventbrite-attendees-list" style="clear:both;">';	
 		
-		foreach ( $items as $item ) : ?>
+		if ( empty( $items ) ) :		
+			$out .= '<ul>';		
+				$out .= '<li>No items to display, please check your <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> list.</li>';		
+			$out .= '</ul>';	
+		else :		
+			$out .= '<ul>';			
+			foreach( $feed->get_items( 0 ) as $item ) :
+				$out .= '<li>';		
+					//$rss_html .= '<a href="' . $item->get_permalink() . '">' . $item->get_title() . '"</a><br />';
+					$out .= '<span>' . $item->get_description() . '</span>';
+					$out .= '<hr />';
+				$out .= '</li>';
+			endforeach;
+			
+			//$rss_html .= $item[ 'content' ][ 'encoded' ];	   
+			$out .= '</ul>';
 		
-		<li>
+		endif;
 		
-		<a href='<?php echo $item[ 'link' ]; ?>' title='<?php echo $item[ 'description' ]; ?>'><?php echo $item[ 'title' ]; ?></a><br /> 
+		$out .= '</div>';
 		
-		<span style="font-size:10px; color:#aaa;"><?php echo date( 'F, j Y', strtotime( $item[ 'pubdate' ] ) ); ?></span>
-		
-		</li>
-		
-		<?php endforeach;
-		
-		echo '</ul>';
-		
-		echo '</div>';
-		
+		return $out;
 	}
-endif;
 
-/**
- * Plugin Action /Settings on plugins page
- * @since 0.2
- * @package plugin
- */
-function eventbrite_attendees_plugin_actions( $links, $file ) {
- 	if( $file == 'eventbrite-attendees-shortcode/eventbrite-attendees-shortcode.php' && function_exists( "admin_url" ) ) {
-		$settings_link = '<a href="' . admin_url( 'options-general.php?page=eventbrite-attendees.php' ) . '">' . __('Settings') . '</a>';
-		array_unshift( $links, $settings_link ); // before other links
+	
+	/**
+	 * RSS shortcode function
+	 *
+	 * @since 0.1
+	 * @use [eventbrite-attendees feed="http://www.eventbrite.com/rss/event_list_attendees/384870157"]
+	 */
+	function preview( $attr ) {
+		global $wpdb;
+			
+		include_once( ABSPATH . WPINC . '/class-simplepie.php' );
+		$feed = new SimplePie();
+		$feed->set_feed_url( $attr );
+		$feed->enable_cache( false );
+		$feed->init();
+		$feed->handle_content_type();
+		
+		// Lets not set a cache location for localhosts.
+		$domain = preg_replace( '|https?://([^/]+)|', '$1', get_option( 'siteurl' ) );
+		if ( false !== strpos( $domain, '/' ) || 'localhost' == $domain || preg_match( '|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|', $domain ) );
+		else
+			$feed->set_cache_location( plugin_dir_path( __FILE__ ) . 'cache' );
+	
+		$items = $feed->get_item();
+			
+		//echo '<pre>';
+			//print_r( $items );
+		//echo '</pre>';
+			
+		$out  = '';
+		$out .= '<h2>' . __( 'This is a preview of the feed', EventbriteAttendeesShortcode::domain ) . '<br />';
+		$out .= '<small>' . __( 'Note: only twelve attendees show in the preview.', EventbriteAttendeesShortcode::domain ) . '</small></h2>';
+		$out .= '<p id="eas-toggle" style="font-size:24px; text-align:right"><em>+</em><em style="display:none;">&minus;</em></p>';
+		$out .= '<div id="eventbrite-attendees-list" style="clear:both;">';
+		
+		if ( empty( $items ) ) :		
+			$out .= '<ul>';		
+				$out .= '<li>No items to display, please check your <a href="http://www.eventbrite.com/r/thefrosty" rel="external" target="_blank" title="Eventbrite">eventbrite</a> list.</li>';		
+			$out .= '</ul>';	
+		else :		
+			$out .= '<ul>';			
+			foreach( $feed->get_items( 0, 12 ) as $item ) :
+				$out .= '<li>';		
+					//$rss_html .= '<a href="' . $item->get_permalink() . '">' . $item->get_title() . '"</a><br />';
+					$out .= '<span>' . $item->get_description() . '</span>';
+					$out .= '<hr />';
+				$out .= '</li>';
+			endforeach;
+			
+			//$rss_html .= $item[ 'content' ][ 'encoded' ];	   
+			$out .= '</ul>';
+		
+		endif;
+		
+		$out .= '</div>';
+		
+		return $out;	
 	}
-	return $links;
+	
+	/**
+	 * Plugin Action /Settings on plugins page
+	 * @since 0.2
+	 * @package plugin
+	 */
+	function plugin_action( $links, $file ) {
+		if ( $file == 'eventbrite-attendees-shortcode/eventbrite-attendees-shortcode.php' && function_exists( 'admin_url' ) ) {
+			$settings_link = '<a href="' . admin_url( 'options-general.php?page=eventbrite-attendees' ) . '">' . __('Settings') . '</a>';
+			array_unshift( $links, $settings_link ); // before other links
+		}
+		return $links;
+	}
+	
 }
+};
 
 ?>

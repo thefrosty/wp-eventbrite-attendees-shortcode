@@ -2,8 +2,10 @@
 Contributors: austyfrosty, themelit
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7329157
 Tags: eventbrite, event, attendee, shortcode, shortcodes, rss, feed
-Requires at least: 2.5
+Requires at least: 2.7
 Stable tag: trunk;
+
+A shortcode to pull in your Eventbrite attendee list (Must be RSS enabled)
 
 == Description ==
 
@@ -35,6 +37,10 @@ There are no screenshots at this time.
 
 == Changelog ==
 
+= Version 0.3 = 
+
+* Complete rewrite and overhaul.
+
 = Version 0.2.1&alpha; = 
 
 * Removed javscript link causing hang-ups.
@@ -53,3 +59,8 @@ There are no screenshots at this time.
 
 * Initial release.
 
+== Upgrade Notice ==
+
+= Version 0.3 =
+
+* Complete code rewrite.
