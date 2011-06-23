@@ -37,6 +37,10 @@ There are no screenshots at this time.
 
 == Changelog ==
 
+= Version 0.3.1 (6/23/11) =
+
+* [BUG FIX] An error in the dashboard widget is casuing some large images. Sorry. Always escape.
+
 = Version 0.3 = 
 
 * Complete rewrite and overhaul.

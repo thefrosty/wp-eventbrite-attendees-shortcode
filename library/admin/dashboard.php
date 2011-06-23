@@ -19,7 +19,7 @@ if ( !function_exists( 'thefrosty_dashboard_widget_rss' ) ) {
 			//echo '<a href="http://frosty.me/cl"><img style="float:right; margin: 0 0 5px 5px;" src="' . plugin_dir_url( __FILE__ ) . '/Austin_Passy.jpg" alt="frosty" /></a>';
 			$style  = '<style type="text/css">';
 			$style .= '.frosty .frosty-image { display:inline-block; height:25px; float:left; width:25px; overflow:hidden }' . "\n";
-			$style .= '.frosty .frosty-image span { background:url("' . plugin_dir_url( __FILE__ ) . 'Sprite.jpg") 0 0 no-repeat; display: inline-block; height: 25px; width: 25px }' . "\n";
+			$style .= '.frosty .frosty-image span { background:url("' . esc_url( plugin_dir_url( __FILE__ ) ) . 'Sprite.jpg") 0 0 no-repeat; display: inline-block; height: 25px; width: 25px }' . "\n";
 			$style .= '.frosty li { padding-left:30px }' . "\n";
 			$style .= 'span.austinpassy { background-position: -31px 0 !important }' . "\n";
 			$style .= 'span.jeanaarter { background-position: -60px 0 !important }' . "\n";
@@ -69,9 +69,9 @@ if ( !function_exists( 'thefrosty_dashboard_widget_rss' ) ) {
                     <div class="frosty-image">
                     	<span class="<?php echo $class; ?>">&nbsp;</span>
                     </div>
-					<li>		
-						<a class="rsswidget" href="<?php echo $item->get_permalink(); ?>" title="<?php echo $item->get_description(); ?>"><?php echo $item->get_title(); ?></a>		
-						<span style="font-size:10px; color:#aaa;"><?php echo $item->get_date('F, jS Y'); ?></span>		
+					<li>
+						<a class="rsswidget" href="<?php echo esc_url( $item->get_permalink() ); ?>" title="<?php echo esc_attr( $item->get_description() ); ?>"><?php echo esc_attr( $item->get_title() ); ?></a>		
+						<span style="font-size:10px; color:#aaa;"><?php echo esc_attr( $item->get_date('F, jS Y') ); ?></span>	
 					</li>		
 				<?php endforeach;
 			}
