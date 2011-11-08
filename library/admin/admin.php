@@ -252,7 +252,7 @@ function eventbrite_attendees_tabs_meta_box() { ?>
         <ul class="tabs">        
             <li class="t1 t"><a class="t1 tab">Austin Passy</a></li>
             <li class="t2 t"><a class="t2 tab">WordCamp<strong>LA</strong></a></li>
-            <li class="t3 t"><a class="t3 tab">Themelit (WP themes)</a></li> 
+            <li class="t3 t"><a class="t3 tab">TheFrosty (WP themes)</a></li> 
             <li class="t4 t"><a class="t4 tab">wpWorkShop</a></li>  
             <li class="t5 t"><a class="t5 tab">Float-O-holics</a></li>  
             <li class="t6 t"><a class="t6 tab">Great Escape</a></li>   
@@ -262,9 +262,9 @@ function eventbrite_attendees_tabs_meta_box() { ?>
         
 		<?php 
 		if ( function_exists( 'thefrosty_network_feed' ) ) {
-        	thefrosty_network_feed( 'http://feeds.feedburner.com/TheFrosty', '1' );
+        	thefrosty_network_feed( 'http://feeds.feedburner.com/AustinPassy', '1' );
 			thefrosty_network_feed( 'http://feeds.feedburner.com/WordCampLA', '2' );
-        	thefrosty_network_feed( 'http://feeds.feedburner.com/themelit', '3' ); 
+        	thefrosty_network_feed( 'http://feeds.feedburner.com/TheFrosty', '3' ); 
        		thefrosty_network_feed( 'http://wpworkshop.la/feed', '4' );
         	thefrosty_network_feed( 'http://floatoholics.com/feed', '5' );
         	thefrosty_network_feed( 'http://greatescapecabofishing.com/feed', '6' ); 

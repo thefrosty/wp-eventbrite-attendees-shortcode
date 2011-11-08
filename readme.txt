@@ -37,6 +37,11 @@ There are no screenshots at this time.
 
 == Changelog ==
 
+= Version 0.3.3 (11/8/11) =
+
+* Feeds updated.
+* WordPress 3.3 check.
+
 = Version 0.3.2 (9/8/11) =
 
 * Dashboard fix.
