@@ -1,97 +1,108 @@
-<?php 
+<?php
 
-add_action( 'wp_dashboard_setup', 'thefrosty_dashboard_widgets' );
-
-if ( !function_exists( 'thefrosty_dashboard_widgets' ) ) {
-	function thefrosty_dashboard_widgets() {
-		global $wp_meta_boxes;
-	
-		wp_add_dashboard_widget( 'thefrosty_dashboard', __( 'The Frosty Network <em>feeds</em>' ), 'thefrosty_dashboard_widget_rss' );
-	}
-}
-
-// Function: Print Dashboard Widget
-if ( !function_exists( 'thefrosty_dashboard_widget_rss' ) ) {
-	function thefrosty_dashboard_widget_rss( $sidebar_args ) {
-		global $wpdb;
-		extract( array($sidebar_args, EXTR_SKIP));
+if ( !class_exists( 'Extendd_Dashboard_Widget' ) ) :
+	class Extendd_Dashboard_Widget {
 		
-			//echo '<a href="http://frosty.me/cl"><img style="float:right; margin: 0 0 5px 5px;" src="' . plugin_dir_url( __FILE__ ) . '/Austin_Passy.jpg" alt="frosty" /></a>';
-			$style  = '<style type="text/css">';
-			$style .= '.frosty .frosty-image { display:inline-block; height:25px; float:left; width:25px; overflow:hidden }' . "\n";
-			$style .= '.frosty .frosty-image span { background:url("' . esc_url( plugin_dir_url( __FILE__ ) ) . 'Sprite.jpg") 0 0 no-repeat; display: inline-block; height: 25px; width: 25px }' . "\n";
-			$style .= '.frosty li { padding-left:30px }' . "\n";
-			$style .= 'span.austinpassy { background-position: -31px 0 !important }' . "\n";
-			$style .= 'span.jeanaarter { background-position: -60px 0 !important }' . "\n";
-			$style .= 'span.wordcamp { background-position: -92px 0 !important }' . "\n";
-			$style .= 'span.floatoholics { background-position: -124px 0 !important }' . "\n";
-			$style .= 'span.thefrosty { background-position: -156px 0 !important }' . "\n";
-			$style .= 'span.greatescapecabofishing { background-position: -193px 0 !important }' . "\n";
-			$style .= 'span.wpworkshop { background-position: -221px 0 !important }' . "\n";
-			$style .= '</style>' . "\n";
+		const domain = 'extendd';
+		
+		public function __construct() {			
+			add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
+		}
+		
+		function add_dashboard_widget() {		
+			wp_add_dashboard_widget( 'extendd_dashboard', __( 'Extendd.com <em>feeds</em>', self::domain ), array( $this, 'widget' ) );
+		}
+		
+		/**
+		 * Dashboard widget
+		 */
+		function widget( $args ) {
+			$defaults = array(
+				'items' => 4,
+				'feed' 	=> 'http://extendd.com/feed/?post_type=download',
+			);
 			
-			$domain = preg_replace( '|https?://([^/]+)|', '$1', get_option( 'siteurl' ) );
+			$args = wp_parse_args( $args, $defaults );
+						
+			$rss_items = $this->fetch_rss_items( $args['items'], $args['feed'] );
 			
-			include_once( ABSPATH . WPINC . '/class-simplepie.php' );
-			$feed = new SimplePie();
-			
-			$feed->set_feed_url( 'http://pipes.yahoo.com/pipes/pipe.run?_id=52c339c010550750e3e64d478b1c96ea&_render=rss' );
-			
-			if ( false !== strpos( $domain, '/' ) || 'localhost' == $domain || preg_match( '|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|', $domain ) ) {
-				$feed->enable_cache( false );
+			$content = '<ul>';
+			if ( !$rss_items ) {
+				$content .= '<li>' . __( 'Error fetching feed', $this->domain ) . '</li>';
 			} else {
-				$feed->enable_cache( true );
-				$feed->set_cache_location( plugin_dir_path( __FILE__ ) . 'cache' );
+				foreach ( $rss_items as $item ) {
+					$url = preg_replace( '/#.*/', '', esc_url( $item->get_permalink(), null, 'display' ) );
+					$content .= '<li>';
+					$content .= '<a class="rsswidget" href="' . $url . 'utm_medium=wpadmin_dashboard&utm_term=newsitem&utm_campaign=eventbrite-attendees-shortocode">' .
+						esc_html( $item->get_title() ) . '</a> ';
+					$content .= '</li>';
+				}
 			}
+			$content .= '</ul>';
+			$content .= '<ul class="social">';
+				$content .= sprintf( 
+					'<li>%s <span class="genericon genericon-facebook"></span><a href="https://www.facebook.com/WPExtendd">%s</a> | ' .
+					'%s <span class="genericon genericon-twitter"></span><a href="http://twitter.com/WPExtendd">@WPExtendd</a></li>',
+						__( 'Like Extendd on', self::domain ),
+						__( 'Facebook', self::domain ),
+						__( 'Follow', self::domain )
+				);
 				
-			$feed->init();
-			$feed->handle_content_type();
+				$content .= sprintf(
+					'<li class="twitter"><span class="genericon genericon-twitter"></span> %s <a href="https://twitter.com/TheFrosty">@TheFrosty</a></li>',
+					__( 'Follow', self::domain )
+				);	
+			$content .= '</ul>';
+			
+			$this->postbox( 'extenddlatest', __( 'Latest plugins from Extendd.com', Eventbrite_Attendees_Shortcode::domain ), $content );
+		}
+		
+		/**
+		 * Create a potbox widget.
+		 *
+		 * @param 	string $id      ID of the postbox.
+		 * @param 	string $title   Title of the postbox.
+		 * @param 	string $content Content of the postbox.
+		 */
+		private function postbox( $id, $title, $content, $group = false ) { ?>
+            <div class="inside"><?php echo $content; ?></div><?php
+		}
+		
+		/**
+		 * Fetch RSS items from the feed.
+		 *
+		 * @param 	int    $num  Number of items to fetch.
+		 * @param 	string $feed The feed to fetch.
+		 * @return 	array|bool False on error, array of RSS items on success.
+		 */
+		private function fetch_rss_items( $num, $feed ) {
+			if ( !function_exists( 'fetch_feed' ) )
+				include_once( ABSPATH . WPINC . '/feed.php' );
+			
+			add_filter( 'wp_feed_cache_transient_lifetime', function() {
+				return WEEK_IN_SECONDS;
+			});	
+			$rss = fetch_feed( $feed );
+			remove_all_filters( 'wp_feed_cache_transient_lifetime' );
 	
-			$items = $feed->get_item();	
-			echo '<ul class="frosty">';		
-			if ( empty( $items ) ) { 
-				echo '<li>No items</li>';		
-			} else {
-				echo $style;
-				foreach( $feed->get_items( 0, 6 ) as $item ) : 
-				
-					$title = esc_attr( strtolower( sanitize_title_with_dashes( htmlentities( $item->get_title() ) ) ) );
-					
-					$class = str_replace( 'http://', '', $item->get_permalink() ); 
-					$class = str_replace( array( '2010.', '2011.', '2012.', '2014.' ), '', $class );
-					$class = str_replace( array( '.com/', '.net/', '.org/', '.la/', 'la.' ), ' ', $class );
-					$class = str_replace( array( '2011/', '2012/', '2013/', '2014/' ), '', $class );
-					$class = str_replace( array( '01/', '02/', '03/', '04/', '05/', '06/', '07/', '08/', '09/', '10/', '11/', '12/' ), '', $class );
-					$class = str_replace( $title, '', $class );
-					$class = str_replace( '/', '', $class );
-					$class = str_replace( 'feedproxy.google', '', $class );
-					$class = str_replace( '~r', '', $class );
-					$class = str_replace( '~', ' ', $class );
-					// Redundant, I know. Can you make a preg_replace for this? ?>
-                    
-                    <div class="frosty-image">
-                    	<span class="<?php echo strtolower( $class ); ?>">&nbsp;</span>
-                    </div>
-					<li>		
-						<a class="rsswidget" href="<?php echo esc_url( $item->get_permalink() ); ?>" title="<?php echo esc_attr( $item->get_description() ); ?>"><?php echo esc_attr( $item->get_title() ); ?></a>		
-						<span style="font-size:10px; color:#aaa;"><?php echo esc_attr( $item->get_date('F, jS Y') ); ?></span>			
-					</li>		
-				<?php endforeach;
+			// Bail if feed doesn't work
+			if ( !$rss || is_wp_error( $rss ) )
+				return false;
+	
+			$rss_items = $rss->get_items( 0, $rss->get_item_quantity( $num ) );
+	
+			// If the feed was erroneous 
+			if ( !$rss_items ) {
+				$md5 = md5( $feed );
+				delete_transient( 'feed_' . $md5 );
+				delete_transient( 'feed_mod_' . $md5 );
+				$rss       = fetch_feed( $feed );
+				$rss_items = $rss->get_items( 0, $rss->get_item_quantity( $num ) );
 			}
-			echo '</ul>';
-			
+	
+			return $rss_items;
+		}
+		
 	}
-}
-
-if ( !function_exists( 'thefrosty_dashboard_callback' ) ) {
-	function thefrosty_dashboard_callback( $sidebar_args ) {
-		array(
-			'all_link' => 'http://thefrosty.net/',
-			'feed_link' => 'http://pipes.yahoo.com/pipes/pipe.run?_id=52c339c010550750e3e64d478b1c96ea&_render=rss',
-			'width' => 'half', // OR 'fourth', 'third', 'half', 'full' (Default: 'half')
-			'height' => 'double', // OR 'single', 'double' (Default: 'single')
-		);
-	}
-}
-
-?>
+	new Extendd_Dashboard_Widget;
+endif;
