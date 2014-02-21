@@ -1,7 +1,7 @@
 ===Eventbrite Attendees Shortcode ===
 Contributors: austyfrosty
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7329157
-Tags: eventbrite, widget-only, event, attendee, shortcode, json 
+Tags: eventbrite, shortcode-only, event, attendee, shortcode, json 
 Requires at least: 3.7
 Tested up to: 3.9
 Stable tag: trunk
