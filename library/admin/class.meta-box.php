@@ -102,7 +102,7 @@ class Eventbrite_Attendees_Meta_Box {
 		$meta['clickable'] = array( 'name' => '_Eventbrite_clickable', 'title' => __( 'Clickable:', $this->domain ), 'type' => 'select', 'options' => $true_false, 'use_key_and_value' => true, 
 			'description' => '' );
 		
-		$meta['app_key'] = array( 'name' => '_Eventbrite_app_key', 'title' => __( 'APP Key:', $this->domain ), 'type' => 'text',
+		$meta['user_key'] = array( 'name' => '_Eventbrite_user_key', 'title' => __( 'User Key:', $this->domain ), 'type' => 'text',
 			'description' => __( 'Optional.', $this->domain ) );
 	
 		return $meta;

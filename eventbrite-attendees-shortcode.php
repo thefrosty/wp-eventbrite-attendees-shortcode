@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Eventbrite Attendees Shortcode
  * Plugin URI: http://austin.passy.co/wordpress-plugins/eventbrite-attendees-shortcode/
- * Description: List your attendees from your <a href="http://www.eventbrite.com/r/thefrosty">Eventbrite</a> event. Get your API key <a href="https://www.eventbrite.com/api/key">here</a>.
- * Version: 1.0
+ * Description: List your attendees from your <a href="http://www.eventbrite.com/r/thefrosty">Eventbrite</a> event. Get your API user key <a href="https://www.eventbrite.com/userkeyapi">here</a>.
+ * Version: 1.1.2
  * Author: Austin Passy
  * Author URI: http://austin.passy.co
  *
@@ -33,10 +33,11 @@ class Eventbrite_Attendees_Shortcode {
 	 * @var    object
 	 */
 	private static $instance;
+	
 	public static $eas_script;
 	
 	/* Constants */
-	const version = '1.0',
+	const version = '1.1.2',
 		  domain  = 'eventbrite-attendees';
 		  
 	/* Vars */
@@ -46,8 +47,9 @@ class Eventbrite_Attendees_Shortcode {
 	/**
 	 * Private settings
 	 */
-	private $settings_api,
-			$meta_box;
+	private	$settings_api,
+			$meta_box,
+			$app_key = '6VULQ5N2UNDNZQP6TI';
 
 	/**
 	 * Returns the instance.
@@ -124,8 +126,8 @@ class Eventbrite_Attendees_Shortcode {
 		add_action( 'init',						array( $this, 'add_shortcode' ), 19 );
 				
 		/* Settings */
-		add_action( 'admin_init',				array( $this, 'admin_init' ), 9 );
-		add_action( 'admin_menu',				array( $this, 'admin_menu' ), 9 );
+		add_action( 'admin_init',					array( $this, 'admin_init' ), 9 );
+		add_action( 'admin_menu',					array( $this, 'admin_menu' ), 9 );
 	}
 	
 	/**
@@ -185,8 +187,12 @@ class Eventbrite_Attendees_Shortcode {
 				$this->meta_box->set_version( self::version );
 				
 			// Dashboard widget
-			if ( 'on' !== $this->get_option( 'dashboard', $this->prefix . '_help' ) )
+			if ( 'on' !== $this->get_option( 'dashboard', $this->prefix . '_help' ) ) {
 				require_once( EVENTBRITE_ATTENDEES_DIR . 'library/admin/dashboard.php' );
+				$dashboard = new Extendd_Dashboard_Widget;
+				$dashboard->set_plugin( $this->prefix );
+				$dashboard->set_args( array( 'enqueue' => true ) );
+			}
 		}
 		
 		// Eventbrite
@@ -231,14 +237,26 @@ class Eventbrite_Attendees_Shortcode {
 
         $fields = array(
             $this->prefix . '_developer' => array(
+				/**
                 array(
-                    'name'		=> 'app_key',
-                    'label'		=> __( 'APP Key', self::domain ),
-                    'desc'		=> sprintf( __( 'Enter your app key. Get one here %s', self::domain ),
+					'name'		=> 'app_key',
+					'label'		=> __( 'APP Key', self::domain ),
+					'desc'		=> sprintf( __( 'Enter your app key. Get one here: %s', self::domain ),
 						make_clickable( 'https://www.eventbrite.com/api/key' ) ),
-                    'type' 		=> 'text',
+					'type' 		=> 'text',
 					'size'		=> 'regular',
-                    'default' 	=> '',
+					'default' 	=> '',
+					'sanitize_callback' => 'esc_attr',
+                ),
+				 */
+                array(
+					'name'		=> 'user_key',
+					'label'		=> __( 'User Key', self::domain ),
+					'desc'		=> '<br>' . sprintf( __( 'Get it here: %s', self::domain ),
+						make_clickable( 'https://www.eventbrite.com/userkeyapi' ) ),
+					'type' 		=> 'text',
+					'size'		=> 'regular',
+					'default' 	=> '',
 					'sanitize_callback' => 'esc_attr',
                 ),
 			),
@@ -248,9 +266,8 @@ class Eventbrite_Attendees_Shortcode {
                     'label'		=> '',
                     'desc'		=> sprintf( '
 						<p><strong>%s</strong></p>
-						<p><code>[eventbrite-attendees id="YOUR_EVENT_ID" sort="true|false" clickable="true|false" app_key="APP_KEY(IF_NOT_SET_IN_SETTINGS)"]</code></p>
+						<p><code>[eventbrite-attendees id="YOUR_EVENT_ID" sort="true|false" clickable="true|false"]</code></p>
 						<p>%s<ul>
-							<li>%s</li>
 							<li>%s</li>
 							<li>%s</li>
 							<li>%s</li>
@@ -260,8 +277,7 @@ class Eventbrite_Attendees_Shortcode {
 							sprintf( __( 'Replacing the "id" with your <a href="%s" rel="external" target="_blank" title="Eventbrite">Eventbrite</a> event id.', self::domain ),
 								'http://www.eventbrite.com/r/thefrosty' ),
 							__( 'sort: Should the attendee list be sorted by puchase date?', self::domain ),
-							__( 'clickable: Should links be clickable?', self::domain ),
-							__( 'app_key: Your developer app key if not saved in the settings.', self::domain )
+							__( 'clickable: Should links be clickable?', self::domain )
 						),
                     'type' 		=> 'html',
                 ),
@@ -276,7 +292,7 @@ class Eventbrite_Attendees_Shortcode {
         );
 		
         //set sections and fields
-        $this->settings_api->set_sections( $this->sections );
+		$this->settings_api->set_sections( $this->sections );
 		$this->settings_api->set_fields( $fields );
 
         //initialize them
@@ -312,29 +328,58 @@ class Eventbrite_Attendees_Shortcode {
 	 * @since 0.1
 	 * @use [eventbrite-attendees
 	 *			id="384870157"
-	 *			app_key="OPTIONAL(IF NOT SET IN SETTINGS)"
-	 *			user_key="OPTIONAL"
+	 *			user_key="USER_KEY"
 	 *			sort="true|false"
 	 *			clickable="true|false"]
 	 */
 	function shortcode( $args ) {
 		
+		/**
+		 * Only Display
+		 *
+		 * can use: address,profile,ticket_id,quantity,first_name,last_name,email, currency,amount_paid,order_id,created,modified, event_date,discount,affiliate,order_type,barcodes,answers
+		 */
+		$only_display = apply_filters( 'eventbrite_attendees_only_display',
+			array(
+				'first_name',
+				'last_name',
+				'profile',
+				'email',
+				/**
+				'ticket_id',
+				'currency',
+				'amount_paid',
+				'order_id',
+				'created',
+				'modified',
+				'event_date',
+				'discount',
+				'affiliate',
+				'order_type',
+				'barcodes',
+				'address',
+				'quantity',
+				'answers'
+				//**/
+			)
+		);
+		
 		$defaults = array (
-			'app_key'	=> $this->get_option( 'app_key', $this->prefix . '_developer' ),
-			'user_key'	=> $this->get_option( 'user_key', $this->prefix . '_developer' ),
-			'id'		=> '',
-			'sort'		=> 'true',
-			'clickable'	=> 'true',
+			'id'				=> '',
+			'sort'				=> 'true',
+			'clickable'		=> 'true',
+			'only_display'		=> implode( ',', $only_display ),
+			'do_not_display'	=> 'profile,answers,address'
 		);
 		
 		// Parse incoming $args into an array and merge it with $defaults
 		$args = wp_parse_args( $args, $defaults );
-		
+				
 		// Bail early
 		if ( empty( $args['id'] ) )
-			return __( 'Please enter a valid "id".', self::domain );
+			return sprintf( __( 'Please enter a valid <a href="%s">Eventbrite</a> "id".', self::domain ), 'http://www.eventbrite.com/r/thefrosty' );
 		
-		$transient = 'event_list_attendees_id_' . md5( $args['id'] );
+		$transient = 'event_list_attendees_id_' . substr( md5( $args['id'] ), 0, 21 );
 		
 //		delete_transient( $transient );
 		
@@ -345,29 +390,31 @@ class Eventbrite_Attendees_Shortcode {
 			// Eventbrite user_key (OPTIONAL, only needed for reading/writing private user data)
 			// http://www.eventbrite.com/userkeyapi
 			$auth = array(
-				'app_key'	=> $args['app_key'],
-				'user_key'	=> $args['user_key'],
+				'app_key'	=> apply_filters( 'eventbrite_attendees_app_key', $this->app_key ),
+				'user_key'	=> $this->get_option( 'user_key', $this->prefix . '_developer' ),
 			);
-			$eventbrite = new Eventbrite( $auth );
+			$eventbrite	= new Eventbrite( $auth );
+			$attendees		= new stdClass;
 			
 			try {
-				$attendees = $eventbrite->event_list_attendees( array( 'id' => $args['id'] ) );
-			} catch ( Exception $e ) {
+				$attendees = $eventbrite->event_list_attendees( array( 'id' => $args['id'], 'only_display' => $args['only_display'], 'do_not_display' => $args['do_not_display'] ) );
+			}
+			catch ( Exception $e ) {
 				$attendees = null;
 			}
 			
 			if ( is_null( $attendees ) ) {
 				delete_transient( $transient );
-				return sprintf( __( 'An error has occurred%s', self::domain ), is_user_logged_in() && current_user_can('edit_pages') ? '<br><pre>' . $e . '</pre>' : '' );
+				return sprintf( __( 'An error has occurred%s', self::domain ), is_user_logged_in() && current_user_can('edit_pages') ? '<br><pre>' . $e->getMessage() . '</pre>' : '' );
 			}
 				
 			self::$eas_script = true;
 			
-			$sort	= filter_var( $args['sort'], FILTER_VALIDATE_BOOLEAN );
-			$click	= filter_var( $args['clickable'], FILTER_VALIDATE_BOOLEAN );
-			
-			set_transient( $transient, $attendees, DAY_IN_SECONDS );
+			set_transient( $transient, $attendees, HOUR_IN_SECONDS );
 		endif;
+			
+		$sort	= filter_var( $args['sort'], FILTER_VALIDATE_BOOLEAN );
+		$click	= filter_var( $args['clickable'], FILTER_VALIDATE_BOOLEAN );
 		
 		return $this->attendee_list_to_html( $attendees, $sort, $click );
 	}
@@ -411,38 +458,53 @@ class Eventbrite_Attendees_Shortcode {
      * @return string
 	 */
 	function attendee_to_html( $attendee, $clickable ) {
-//		return '<pre>' . print_r( $attendee, true ) . '</pre>';
-
+	//	return '<pre>' . print_r( $attendee, true ) . '</pre>'; exit;
+		
+		$keys = (array) apply_filters( 'eventbrite_attendees_keys_to_unset', array( 'gender', 'age', 'blog', 'job_title', 'cell_phone', 'birth_date', 'notes', 'prefix', 'suffix' ) );
+		$keys = array_merge( $keys, array( 'event_id', 'id' ) );
+		
 		$html = "<ul>\n";
 		
-		foreach( $attendee as $key => $val ) {
-			unset(
-				$attendee->suffix,
-				$attendee->event_id,
-				$attendee->answers,
-				$attendee->prefix,
-				$attendee->id
-			);
-				
-			switch( $key ) {
-				case 'first_name':
-					$html .= '<li class="eb-attendee-list-item ' . sanitize_html_class( $key ) . '">';
-					$html .= $val;
-					$html .= "&nbsp;</li>\n\t";
-					break;
-				default:
-					if ( !empty( $val ) ) {
-						$html .= '<li class="eb-attendee-list-item ' . sanitize_html_class( $key ) . '">';
-						$html .= $clickable ? make_clickable( $val ) : $val;
-						$html .= "</li>\n\t";
-					}
-					break;
+		if ( ( isset( $attendee->first_name ) && !empty( $attendee->first_name ) ) && isset( $attendee->last_name ) && !empty( $attendee->last_name ) ) {
+			$attendee->display_name = $attendee->first_name . ' ' . $attendee->last_name;
+			unset( $attendee->first_name, $attendee->last_name );
+		}
+		
+		$order = array( 'display_name', 'first_name', 'last_name', 'company', 'email', 'website' );
+		
+		foreach( $attendee as $name => $value ) {
+			if ( in_array( $name, $keys ) ) {
+				unset( $attendee->$name );
+				continue;
 			}
+			
+			ob_start();
+			$this->attendee_template( $name, $value, $clickable );
+			$html .= ob_get_clean();
 		}
 		
 		$html .= "</ul>\n";
 		
 		return $html;
+	}
+	
+	/**
+	 *
+	 */
+	function attendee_template( $name, $value, $clickable ) {
+		
+		$folder		= apply_filters( 'eventbrite_attendees_folder_template', 'eventbrite-attendees-template' );
+		$template	= trailingslashit( get_stylesheet_directory() ) . $folder . '/' . $name . '.php';	
+				
+		if ( !file_exists( $template ) ) {
+			$template = trailingslashit( EVENTBRITE_ATTENDEES_DIR ) . 'template/' . $name . '.php';
+		}
+		
+		if ( !file_exists( $template ) ) {
+			$template = trailingslashit( EVENTBRITE_ATTENDEES_DIR ) . 'template/default.php';
+		}
+		
+		include( $template );
 	}
 	
 	/**
