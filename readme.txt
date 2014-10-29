@@ -31,7 +31,6 @@ Attendee output control. Eventbrite returns a lot of information in regards to e
 
 `
 // See: http://developer.eventbrite.com/doc/events/event_list_attendees/ 'only_display' for allowed keys.
-add_filter( 'eventbrite_attendees_only_display', 'frosty_eventbrite_attendee_only_display );
 function frosty_eventbrite_attendee_data_to_remove( $data ) {
 	// If you want to start fresh use the next line
 	//$data = array( 'ticket_id', 'tax' ); // etc..
@@ -41,14 +40,35 @@ function frosty_eventbrite_attendee_data_to_remove( $data ) {
 	//$data = array_unique( array_merge( $newdata, $data ) );
 	return $data;
 }
+add_filter( 'eventbrite_attendees_only_display', 'frosty_eventbrite_attendee_only_display );
 `
 
 Removed is the old app_key and replaced with the user_key. If you want to use your own app key filter it like so:
 
 `
-add_filter( 'eventbrite_attendees_app_key', 'frosty_eventbrite_attendees_app_key' );
 function frosty_eventbrite_attendees_app_key( $key ) {
 	return 'MY_NEW_KEY';
+}
+add_filter( 'eventbrite_attendees_app_key', 'frosty_eventbrite_attendees_app_key' );
+`
+
+Template $make_clickable example; here are two examples:
+`
+#1
+$name = 'display_name'
+function frosty_eventbrite_attendees_make_display_name_clickable() {
+	return true; //default is false
+}
+add_filter( "eventbrite_attendees_{$name}_make_clickable", 'frosty_eventbrite_attendees_make_display_name_clickable' );
+
+#2
+$names = array( 'display_name', 'company' );
+foreach ( $names as $name ) :
+	add_filter( "eventbrite_attendees_{$name}_make_clickable", "frosty_eventbrite_attendees_make_clickable" );
+endforeach;
+ 
+function frosty_eventbrite_attendees_make_clickable() {
+	return true; //default is false
 }
 `
 
@@ -77,6 +97,15 @@ I created this plugin to easily show your attendees from any event you've create
 2. Shortcode generator on post page.
 
 == Changelog ==
+
+= Version 1.1.3 (10/29/14) =
+
+* Added array_unique to `eventbrite_attendees_keys_to_unset` filter.
+* Remove 'eeeee' typo in email class. 
+* Added global `$attendee_website` variable. Add a website link to any template with the global var.
+* Added: `eventbrite_attendees_{$name}_make_clickable` filter where $name is the template name ex: email, first_name, display_name or etc.
+	* Default is false, if true will add the website URL to the template value.
+* Updated default and display_name template.
 
 = Version 1.1.2 (10/24/14) =
 

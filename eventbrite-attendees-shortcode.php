@@ -3,7 +3,7 @@
  * Plugin Name: Eventbrite Attendees Shortcode
  * Plugin URI: http://austin.passy.co/wordpress-plugins/eventbrite-attendees-shortcode/
  * Description: List your attendees from your <a href="http://www.eventbrite.com/r/thefrosty">Eventbrite</a> event. Get your API user key <a href="https://www.eventbrite.com/userkeyapi">here</a>.
- * Version: 1.1.2
+ * Version: 1.1.3
  * Author: Austin Passy
  * Author URI: http://austin.passy.co
  *
@@ -37,7 +37,7 @@ class Eventbrite_Attendees_Shortcode {
 	public static $eas_script;
 	
 	/* Constants */
-	const version = '1.1.2',
+	const version = '1.1.3',
 		  domain  = 'eventbrite-attendees';
 		  
 	/* Vars */
@@ -363,6 +363,7 @@ class Eventbrite_Attendees_Shortcode {
 				//**/
 			)
 		);
+		//var_dump( $only_display ); exit;
 		
 		$defaults = array (
 			'id'				=> '',
@@ -374,12 +375,13 @@ class Eventbrite_Attendees_Shortcode {
 		
 		// Parse incoming $args into an array and merge it with $defaults
 		$args = wp_parse_args( $args, $defaults );
+		//var_dump( $args ); exit;
 				
 		// Bail early
 		if ( empty( $args['id'] ) )
 			return sprintf( __( 'Please enter a valid <a href="%s">Eventbrite</a> "id".', self::domain ), 'http://www.eventbrite.com/r/thefrosty' );
 		
-		$transient = 'event_list_attendees_id_' . substr( md5( $args['id'] ), 0, 21 );
+		$transient = 'event_list_attendees_id_' . substr( md5( json_encode( $args ) ), 0, 21 );
 		
 //		delete_transient( $transient );
 		
@@ -428,7 +430,8 @@ class Eventbrite_Attendees_Shortcode {
      * @return string
 	 */
 	function attendee_list_to_html( $attendees, $sort = true, $clickable = true ) {
-		$html  = "<div class='eb-attendees-list'>\n";
+		$event = isset( $attendees->attendees[0]->attendee->event_id ) ? $attendees->attendees[0]->attendee->event_id : '';
+		$html  = "<div class='eb-attendees-list' data-event-id='$event'>\n";
 		
 		if ( isset( $attendees->attendees ) ) {
 			if ( $sort ) {
@@ -458,10 +461,12 @@ class Eventbrite_Attendees_Shortcode {
      * @return string
 	 */
 	function attendee_to_html( $attendee, $clickable ) {
+		global $attendee_website;
+		
 	//	return '<pre>' . print_r( $attendee, true ) . '</pre>'; exit;
 		
 		$keys = (array) apply_filters( 'eventbrite_attendees_keys_to_unset', array( 'gender', 'age', 'blog', 'job_title', 'cell_phone', 'birth_date', 'notes', 'prefix', 'suffix' ) );
-		$keys = array_merge( $keys, array( 'event_id', 'id' ) );
+		$keys = array_merge( array_unique( $keys ), array( 'event_id', 'id' ) );
 		
 		$html = "<ul>\n";
 		
@@ -478,8 +483,13 @@ class Eventbrite_Attendees_Shortcode {
 				continue;
 			}
 			
+			if ( 'website' == $name ) {
+				$attendee_website = $value;
+			}
+			
 			ob_start();
 			$this->attendee_template( $name, $value, $clickable );
+		//	$html .= defined( 'WP_LOCAL_DEV' ) && WP_LOCAL_DEV ? " $name:" : '';
 			$html .= ob_get_clean();
 		}
 		
